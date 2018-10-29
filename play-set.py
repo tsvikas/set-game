@@ -3,9 +3,10 @@ import random
 
 
 class SetRules:
-    def __init__(self, n=4, k=3):
+    def __init__(self, n, k, card_str_fn=str):
         self.n = n
         self.k = k
+        self.card_str_fn = card_str_fn
         self.cards = self.create_cards()
 
     def create_cards(self):
@@ -16,7 +17,7 @@ class SetRules:
         return len(self.cards)
 
     def str_card(self, idx):
-        return str(self.cards[idx])
+        return self.card_str_fn(self.cards[idx])
 
     def is_set(self, idxs):
         if len(idxs) != self.k:
@@ -29,23 +30,22 @@ class SetRules:
     def any_set(self, idxs):
         return any(self.is_set(comb) for comb in itertools.combinations(idxs, self.k))
 
-    def all_sets(self, idxs):
-        return [
-            [self.cards[idx] for idx in comb]
-            for comb in itertools.combinations(idxs, self.k)
-            if self.is_set(comb)
-        ]
+
+BASIC_SET = SetRules(n=4, k=3, card_str_fn=str)
 
 
-class SetBoard:
-    def __init__(self, deck_size, min_board=12, rand_seed=None):
+class SetGame:
+    def __init__(self, rules: SetRules, min_board=12, rand_seed=None):
+        self.rules = rules
         self.min_board = min_board
+        # set deck
         random.seed(rand_seed)
-        self.deck = list(range(deck_size))
+        self.deck = list(range(rules.deck_size))
         random.shuffle(self.deck)
+        # set board
         self.board = [None] * min_board
 
-    def refill(self):
+    def refill_board(self):
         self.board[self.min_board :] = [
             idx for idx in self.board[self.min_board :] if idx is not None
         ]
@@ -60,41 +60,63 @@ class SetBoard:
         for ix in ixs:
             self.board[ix] = None
 
-    def print(self, card_str_fn):
-        for i, idx in enumerate(self.board):
+    def str_position(self, ix):
+        idx = self.board[ix]
+        return f'{ix:2}: {self.rules.str_card(idx)}'
+
+    def print_board(self):
+        for ix, _idx in enumerate(self.board):
             print(
-                f'{i:2}: {card_str_fn(idx)}',
-                end='\n' if i % 3 == 2 or i == len(self.board) - 1 else '\t',
+                self.str_position(ix),
+                end='\n' if ix % 3 == 2 or ix == len(self.board) - 1 else '\t',
             )
         print(f'deck: {len(self.deck)}')
 
-    def print_deck(self, card_str_fn):
+    def print_deck(self):
         for i, idx in enumerate(self.deck):
-            print(f'{i:2}: {card_str_fn(idx)}')
+            print(f'{i:2}: {self.rules.str_card(idx)}')
+
+    def is_set(self, ixs):
+        idxs = [self.board[ix] for ix in ixs]
+        return self.rules.is_set(idxs)
+
+    def has_set(self):
+        return self.rules.any_set(self.board)
+
+    def all_sets(self):
+        ixs = range(len(self.board))
+        return [
+            '\t'.join(self.str_position(ix) for ix in comb)
+            for comb in itertools.combinations(ixs, self.rules.k)
+            if self.is_set(comb)
+        ]
 
 
 def main():
-    rules = SetRules()
-    board = SetBoard(rules.deck_size)
+    game = SetGame(BASIC_SET)
 
     while True:
-        board.refill()
-        board.print(rules.str_card)
-        action = input('action> ')
+        game.refill_board()
+        game.print_board()
+        action = input('action> ').lower().strip()
         if action in ['help']:
-            print(rules.all_sets(board.board))
+            for hint in game.all_sets():
+                print(hint)
+            print('~' * 56)
+        elif action in ['count']:
+            print(len(game.all_sets()))
         elif action in ['noset']:
-            if not rules.any_set(board.board):
-                if board.deck:
-                    board.add_card()
+            if not game.has_set():
+                if game.deck:
+                    game.add_card()
                 else:
                     print('deck is empty, game ended :)')
                     break
             else:
                 print('find the set first, or use deal! / end! to force')
         elif action in ['deal!']:
-            if board.deck:
-                board.add_card()
+            if game.deck:
+                game.add_card()
             else:
                 print('deck is empty')
         elif action in ['end!']:
@@ -108,14 +130,13 @@ def main():
                 print('invalid cards input')
                 continue
             try:
-                idxs = [board.board[ix] for ix in ixs]
+                if game.is_set(ixs):
+                    game.remove_cards(ixs)
+                else:
+                    print('not a valid set')
             except IndexError:
                 print('invalid cards choice')
                 continue
-            if rules.is_set(idxs):
-                board.remove_cards(ixs)
-            else:
-                print('not a valid set')
         else:
             print(f'invalid action {action!r}')
 
