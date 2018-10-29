@@ -20,7 +20,8 @@ class SetRules:
         return len(self.cards)
 
     def str_card(self, idx):
-        return self.card_str_fn(self.cards[idx])
+        card = self.cards[idx] if idx else None
+        return self.card_str_fn(card)
 
     def is_set(self, idxs):
         if len(idxs) != self.k:
@@ -60,6 +61,9 @@ class ProjectiveSet(SetRules):
 
 
 def str_card_43(card):
+    max_len = 3
+    if not card:
+        return max_len * '\u3000'
     number = [1, 2, 3][card[0]]
     color = ['red', 'green', 'magenta'][card[2]]
     shape_shading = [
@@ -68,11 +72,13 @@ def str_card_43(card):
         ['\u25a0', '\u25a5', '\u25a1'],
     ][card[3]][card[1]]
     symbols = shape_shading * number
-    return colors.color(symbols, fg=color) + '\u3000' * (3 - number)
+    return colors.color(symbols, fg=color) + '\u3000' * (max_len - number)
 
 
 def str_card_34(card):
     max_len = 6
+    if not card:
+        return max_len * '\u3000'
     number = [5, 1, 2, 3][card[0]]
     color = ['white', 'red', 'green', 'magenta'][card[2]]
     shape_shading = ['\u25c8', '\u25cf', '\u25b2', '\u25a0', 0][card[1]]
@@ -96,18 +102,21 @@ class SetGame:
         self.board = [None] * min_board
 
     def refill_board(self):
-        change = any(idx is None for idx in self.board)
+        change = any(idx is None or idx is True for idx in self.board)
         self.board[self.min_board :] = [
             idx for idx in self.board[self.min_board :] if idx is not None
         ]
-        self.board = [
-            idx if idx is not None else self.deck.pop(0) for idx in self.board
-        ]
+        for ix, idx in enumerate(self.board):
+            if idx is None or idx is True:
+                if self.deck:
+                    self.board[ix] = self.deck.pop(0)
+                else:
+                    self.board[ix] = False
         return change
 
     def add_card(self):
         if self.deck:
-            self.board.append(self.deck.pop(0))
+            self.board.append(True)
             return True
         return False
 
@@ -141,11 +150,24 @@ class SetGame:
         idxs = [self.board[ix] for ix in ixs]
         return self.rules.is_set(idxs)
 
+    def any_set(self, ixs):
+        idxs = [self.board[ix] for ix in ixs]
+        return self.rules.any_set(idxs)
+
     def has_set(self):
-        return self.rules.any_set(self.board)
+        ixs = [
+            ix
+            for ix in range(len(self.board))
+            if isinstance(self.board[ix], int) and not isinstance(self.board[ix], bool)
+        ]
+        return self.any_set(ixs)
 
     def all_sets(self):
-        ixs = range(len(self.board))
+        ixs = [
+            ix
+            for ix in range(len(self.board))
+            if isinstance(self.board[ix], int) and not isinstance(self.board[ix], bool)
+        ]
         return [
             '\t'.join(self.str_position(ix) for ix in comb)
             for comb in itertools.combinations(ixs, self.rules.k)
@@ -161,6 +183,9 @@ class Action(Enum):
     DEAL_ = 4
     END_ = 5
     SET = 6
+    RM_FIRST = 7
+    RM_LAST = 8
+    RM_50 = 9
 
 
 ACTIONS_DICT = {
@@ -171,6 +196,9 @@ ACTIONS_DICT = {
     'deal!': Action.DEAL_,
     'end!': Action.END_,
     'set': Action.SET,
+    'rm!': Action.RM_FIRST,
+    'rml!': Action.RM_LAST,
+    'rm50!': Action.RM_50,
 }
 
 
@@ -209,6 +237,14 @@ def main(min_board, is_projective):
         elif act is Action.DEAL_:
             if not game.add_card():
                 print('deck is empty')
+        elif act is Action.RM_FIRST:
+            game.remove_cards([0])
+        elif act is Action.RM_LAST:
+            game.remove_cards([-1])
+        elif act is Action.RM_50:
+            for i in range(49):
+                game.deck.pop(0)
+            game.remove_cards([0])
         elif act is Action.END_:
             print('game ended :)')
             break
