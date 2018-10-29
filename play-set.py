@@ -147,7 +147,7 @@ def input_action():
     return ACTIONS_DICT.get(action_s, action_s)
 
 
-def main(min_board=12, is_projective=False):
+def main(min_board, is_projective):
     game = SetGame(PROJ_SET if is_projective else BASIC_SET, min_board=min_board)
 
     while True:
@@ -200,4 +200,4 @@ def main(min_board=12, is_projective=False):
 
 
 if __name__ == "__main__":
-    main()
+    main(min_board=12, is_projective=True)
