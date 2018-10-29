@@ -177,7 +177,7 @@ class SetGame:
 
 class Action(Enum):
     PRINT = 0
-    HELP = 1
+    HINT = 1
     COUNT = 2
     NO_SET = 3
     DEAL_ = 4
@@ -186,16 +186,23 @@ class Action(Enum):
     RM_FIRST = 7
     RM_LAST = 8
     RM_50 = 9
+    HELP = 10
 
 
 ACTIONS_DICT = {
+    '?': Action.HELP,
     'print': Action.PRINT,
-    'help': Action.HELP,
+    'p': Action.PRINT,
+    'hint': Action.HINT,
+    'h': Action.HINT,
     'count': Action.COUNT,
+    'c': Action.COUNT,
     'noset': Action.NO_SET,
+    'n': Action.NO_SET,
+    'set': Action.SET,
+    's': Action.SET,
     'deal!': Action.DEAL_,
     'end!': Action.END_,
-    'set': Action.SET,
     'rm!': Action.RM_FIRST,
     'rml!': Action.RM_LAST,
     'rm50!': Action.RM_50,
@@ -222,7 +229,7 @@ def main(min_board, is_projective):
         act = input_action()
         if act is Action.PRINT:
             game.print_board()
-        elif act is Action.HELP:
+        elif act is Action.HINT:
             for hint in game.all_sets():
                 print(hint)
         elif act is Action.COUNT:
@@ -261,9 +268,10 @@ def main(min_board, is_projective):
                 print('invalid cards choice')
                 continue
         else:
-            print(f'invalid action {act!r}')
-            print(f'use: {list(ACTIONS_DICT.keys())}')
+            if act is not Action.HELP:
+                print(f'invalid action {act!r}')
+            print(f'usage: {list(ACTIONS_DICT.keys())}')
 
 
 if __name__ == "__main__":
-    main(min_board=12, is_projective=True)
+    main(min_board=12, is_projective=False)
