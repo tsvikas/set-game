@@ -83,11 +83,20 @@ class SetGame:
         return change
 
     def add_card(self):
-        self.board.append(self.deck.pop(0))
+        if self.deck:
+            self.board.append(self.deck.pop(0))
+            return True
+        return False
 
     def remove_cards(self, ixs):
         for ix in ixs:
             self.board[ix] = None
+
+    def remove_set(self, ixs):
+        if self.is_set(ixs):
+            self.remove_cards(ixs)
+            return True
+        return False
 
     def str_position(self, ix):
         idx = self.board[ix]
@@ -147,6 +156,11 @@ def input_action():
     return ACTIONS_DICT.get(action_s, action_s)
 
 
+def input_cards():
+    ixs_input = input('cards> ')
+    return [int(ix) for ix in ixs_input.split()]
+
+
 def main(min_board, is_projective):
     game = SetGame(PROJ_SET if is_projective else BASIC_SET, min_board=min_board)
 
@@ -164,32 +178,25 @@ def main(min_board, is_projective):
             print(len(game.all_sets()))
         elif act is Action.NO_SET:
             if not game.has_set():
-                if game.deck:
-                    game.add_card()
-                else:
+                if not game.add_card():
                     print('deck is empty, game ended :)')
                     break
             else:
                 print('find the set first, or use deal! / end! to force')
         elif act is Action.DEAL_:
-            if game.deck:
-                game.add_card()
-            else:
+            if not game.add_card():
                 print('deck is empty')
         elif act is Action.END_:
             print('game ended :)')
             break
         elif act is Action.SET:
-            ixs_input = input('cards> ')
             try:
-                ixs = [int(ix) for ix in ixs_input.split()]
+                ixs = input_cards()
             except ValueError:
                 print('invalid cards input')
                 continue
             try:
-                if game.is_set(ixs):
-                    game.remove_cards(ixs)
-                else:
+                if not game.remove_set(ixs):
                     print('not a valid set')
             except IndexError:
                 print('invalid cards choice')
