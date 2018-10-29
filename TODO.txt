@@ -1,0 +1,4 @@
+better card printing
+use logging
+add weird set rules
+separate deck design from rules
