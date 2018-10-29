@@ -32,7 +32,33 @@ class SetRules:
         return any(self.is_set(comb) for comb in itertools.combinations(idxs, self.k))
 
 
+class ProjectiveSet(SetRules):
+    def __init__(self):
+        super(ProjectiveSet, self).__init__(n=3, k=3)
+
+    def create_cards(self):
+        return list(itertools.product(range(self.k + 1), repeat=self.n))
+
+    def is_set(self, idxs):
+        if len(idxs) != self.k:
+            return False
+        cards = [self.cards[idx] for idx in idxs]
+        for dim in range(self.n):
+            cards_dim = [card[dim] for card in cards]
+            if 0 in cards_dim:
+                # 0-0-0 or 0-x-x
+                cards_dim.remove(0)
+                if len(set(cards_dim)) > 1:
+                    return False
+            else:
+                # 1-2-3
+                if len(set(cards_dim)) != len(cards_dim):
+                    return False
+        return True
+
+
 BASIC_SET = SetRules(n=4, k=3, card_str_fn=str)
+PROJ_SET = ProjectiveSet()
 
 
 class SetGame:
@@ -121,8 +147,8 @@ def input_action():
     return ACTIONS_DICT.get(action_s, action_s)
 
 
-def main():
-    game = SetGame(BASIC_SET)
+def main(min_board=12, is_projective=False):
+    game = SetGame(PROJ_SET if is_projective else BASIC_SET, min_board=min_board)
 
     while True:
         change = game.refill_board()
