@@ -1,5 +1,6 @@
 import itertools
 import random
+from enum import Enum
 
 
 class SetRules:
@@ -94,6 +95,32 @@ class SetGame:
         ]
 
 
+class Action(Enum):
+    PRINT = 0
+    HELP = 1
+    COUNT = 2
+    NO_SET = 3
+    DEAL_ = 4
+    END_ = 5
+    SET = 6
+
+
+ACTIONS_DICT = {
+    'print': Action.PRINT,
+    'help': Action.HELP,
+    'count': Action.COUNT,
+    'noset': Action.NO_SET,
+    'deal!': Action.DEAL_,
+    'end!': Action.END_,
+    'set': Action.SET,
+}
+
+
+def input_action():
+    action_s = input('action> ').lower().strip()
+    return ACTIONS_DICT.get(action_s, action_s)
+
+
 def main():
     game = SetGame(BASIC_SET)
 
@@ -101,15 +128,15 @@ def main():
         change = game.refill_board()
         if change:
             game.print_board()
-        action = input('action> ').lower().strip()
-        if action in ['print']:
+        act = input_action()
+        if act is Action.PRINT:
             game.print_board()
-        elif action in ['help']:
+        elif act is Action.HELP:
             for hint in game.all_sets():
                 print(hint)
-        elif action in ['count']:
+        elif act is Action.COUNT:
             print(len(game.all_sets()))
-        elif action in ['noset']:
+        elif act is Action.NO_SET:
             if not game.has_set():
                 if game.deck:
                     game.add_card()
@@ -118,15 +145,15 @@ def main():
                     break
             else:
                 print('find the set first, or use deal! / end! to force')
-        elif action in ['deal!']:
+        elif act is Action.DEAL_:
             if game.deck:
                 game.add_card()
             else:
                 print('deck is empty')
-        elif action in ['end!']:
+        elif act is Action.END_:
             print('game ended :)')
             break
-        elif action in ['set']:
+        elif act is Action.SET:
             ixs_input = input('cards> ')
             try:
                 ixs = [int(ix) for ix in ixs_input.split()]
@@ -142,7 +169,8 @@ def main():
                 print('invalid cards choice')
                 continue
         else:
-            print(f'invalid action {action!r}')
+            print(f'invalid action {act!r}')
+            print(f'use: {list(ACTIONS_DICT.keys())}')
 
 
 if __name__ == "__main__":
