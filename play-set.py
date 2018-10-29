@@ -46,12 +46,14 @@ class SetGame:
         self.board = [None] * min_board
 
     def refill_board(self):
+        change = any(idx is None for idx in self.board)
         self.board[self.min_board :] = [
             idx for idx in self.board[self.min_board :] if idx is not None
         ]
         self.board = [
             idx if idx is not None else self.deck.pop(0) for idx in self.board
         ]
+        return change
 
     def add_card(self):
         self.board.append(self.deck.pop(0))
@@ -96,13 +98,15 @@ def main():
     game = SetGame(BASIC_SET)
 
     while True:
-        game.refill_board()
-        game.print_board()
+        change = game.refill_board()
+        if change:
+            game.print_board()
         action = input('action> ').lower().strip()
-        if action in ['help']:
+        if action in ['print']:
+            game.print_board()
+        elif action in ['help']:
             for hint in game.all_sets():
                 print(hint)
-            print('~' * 56)
         elif action in ['count']:
             print(len(game.all_sets()))
         elif action in ['noset']:
