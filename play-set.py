@@ -127,7 +127,7 @@ def main():
             print('game ended :)')
             break
         elif action in ['set']:
-            ixs_input = input(' cards> ')
+            ixs_input = input('cards> ')
             try:
                 ixs = [int(ix) for ix in ixs_input.split()]
             except ValueError:
