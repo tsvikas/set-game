@@ -2,6 +2,8 @@ import itertools
 import random
 from enum import Enum
 
+import colors
+
 
 class SetRules:
     def __init__(self, n, k, card_str_fn=str):
@@ -33,8 +35,8 @@ class SetRules:
 
 
 class ProjectiveSet(SetRules):
-    def __init__(self):
-        super(ProjectiveSet, self).__init__(n=3, k=3)
+    def __init__(self, card_str_fn=str):
+        super(ProjectiveSet, self).__init__(n=3, k=3, card_str_fn=card_str_fn)
 
     def create_cards(self):
         return list(itertools.product(range(self.k + 1), repeat=self.n))
@@ -57,8 +59,29 @@ class ProjectiveSet(SetRules):
         return True
 
 
-BASIC_SET = SetRules(n=4, k=3, card_str_fn=str)
-PROJ_SET = ProjectiveSet()
+def str_card_43(card):
+    number = [1, 2, 3][card[0]]
+    color = ['red', 'green', 'magenta'][card[2]]
+    shape_shading = [
+        ['\u25cf', '\u25cd', '\u25cb'],
+        ['\u25b2', '\u25ec', '\u25b3'],
+        ['\u25a0', '\u25a5', '\u25a1'],
+    ][card[3]][card[1]]
+    symbols = shape_shading * number
+    return colors.color(symbols, fg=color) + '\u3000' * (3 - number)
+
+
+def str_card_34(card):
+    max_len = 6
+    number = [5, 1, 2, 3][card[0]]
+    color = ['white', 'red', 'green', 'magenta'][card[2]]
+    shape_shading = ['\u25c8', '\u25cf', '\u25b2', '\u25a0', 0][card[1]]
+    symbols = shape_shading * number
+    return colors.color(symbols, fg=color) + '\u3000' * (max_len - number)
+
+
+BASIC_SET = SetRules(n=4, k=3, card_str_fn=str_card_43)
+PROJ_SET = ProjectiveSet(card_str_fn=str_card_34)
 
 
 class SetGame:
