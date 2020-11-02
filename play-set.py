@@ -76,7 +76,7 @@ def str_card_43(card):
 
 
 def str_card_34(card):
-    max_len = 6
+    max_len = 3
     if not card:
         return max_len * '\u3000'
     number = [5, 1, 2, 3][card[0]]
@@ -86,8 +86,22 @@ def str_card_34(card):
     return colors.color(symbols, fg=color) + '\u3000' * (max_len - number)
 
 
+def str_card_34b(card):
+    max_len = 4
+    if not card:
+        return max_len * ' '
+    return '-123'[card[0]] + '-ABC'[card[1]] + '-XYZ'[card[2]]
+
+
+def str_card_33b(card):
+    max_len = 4
+    if not card:
+        return max_len * ' '
+    return '-123'[card[0]] + '-ABC'[card[1]]
+
+
 BASIC_SET = SetRules(n=4, k=3, card_str_fn=str_card_43)
-PROJ_SET = ProjectiveSet(card_str_fn=str_card_34)
+PROJ_SET = ProjectiveSet(card_str_fn=str_card_34b)
 
 
 class SetGame:
