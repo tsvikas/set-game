@@ -36,8 +36,8 @@ class SetRules:
 
 
 class ProjectiveSet(SetRules):
-    def __init__(self, card_str_fn=str):
-        super(ProjectiveSet, self).__init__(n=3, k=3, card_str_fn=card_str_fn)
+    def __init__(self, n=3, card_str_fn=str):
+        super(ProjectiveSet, self).__init__(n=n, k=3, card_str_fn=card_str_fn)
 
     def create_cards(self):
         return list(itertools.product(range(self.k + 1), repeat=self.n))
@@ -102,6 +102,7 @@ def str_card_33b(card):
 
 BASIC_SET = SetRules(n=4, k=3, card_str_fn=str_card_43)
 PROJ_SET = ProjectiveSet(card_str_fn=str_card_34b)
+PROJ_SET_EASY = ProjectiveSet(n=2, card_str_fn=str_card_33b)
 
 
 class SetGame:
@@ -288,4 +289,4 @@ def main(min_board, is_projective):
 
 
 if __name__ == "__main__":
-    main(min_board=12, is_projective=False)
+    main(min_board=9, is_projective=True)
